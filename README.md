@@ -19,22 +19,22 @@ graph TD
     classDef spacer fill:none,stroke:none,color:none,width:0px,height:0px;
 
     subgraph Before ["Before Rotation (Right Heavy)"]
-    %% This invisible node pushes the real tree down
+    %% Invisible spacer to push tree down for title
     inv1[ ]:::spacer ~~~ A((10))
     
-    A --&gt;|Right| B((20))
-    B --&gt;|Right| C((30))
+    A -->|Right| B((20))
+    B -->|Right| C((30))
     end
 
-    %% Connection between trees
-    C -.-&gt;|Left Rotation| B_new
+    %% Long arrow (--->) forces vertical separation
+    C --->|Left Rotation| B_new
 
     subgraph After ["After Rotation (Balanced)"]
     %% Spacer for consistency
     inv2[ ]:::spacer ~~~ B_new
     
-    B_new((20)) --&gt;|Left| A_new((10))
-    B_new --&gt;|Right| C_new((30))
+    B_new((20)) -->|Left| A_new((10))
+    B_new -->|Right| C_new((30))
     end
 ```
 Experiments were conducted with dataset sizes ($n$) ranging from 10 to 1,000,000 nodes using both Sequential and Pseudo-Random insertion patterns.
