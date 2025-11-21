@@ -1,0 +1,14 @@
+# Compiled files
+*.o
+*.out
+*.exe
+avl_benchmark
+
+# IDE and editor files
+.vscode/
+*.suo
+*.user
+*.sln
+
+# Mac specific
+.DS_Store
