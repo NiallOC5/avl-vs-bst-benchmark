@@ -2,8 +2,7 @@
 #include <cmath>
 #include <chrono>
 #include <thread>
-
-
+#include <algorithm> // Added for max()
 
 using namespace std;
 
@@ -28,8 +27,6 @@ public:
         return this->size;
     }
 };
-
-
 
 class AVL {
 public:
@@ -84,14 +81,16 @@ public:
     }
 
     void fixme(Node* x) {
-        //fix x if its balance factor is violated
-
+        // Recalculate height and balance factor
         recalc(x);
-        // Uncomment one of the below two statements
-        if ((x->bf <= 1) && (x->bf >= -1)) return; // AVL tree
-        // if (true) return; // just BST
+
+        // MODE SWITCH: Uncomment "return" below to disable AVL balancing (simulate standard BST)
+        if ((x->bf <= 1) && (x->bf >= -1)) return; // AVL Balanced Mode
+        // if (true) return;                       // Standard BST Mode
+
         Node* y = tallchild(x);
         Node* z = tallchild(y);
+
         // 4 cases of rotations
         if ((y == x->left) && (z == y->left)) { rrotate(x); } // Case 1
         else if ((y == x->left) && (z == y->right)) { lrotate(y); rrotate(x); } // Case 2
@@ -101,8 +100,6 @@ public:
 
     void Transplant(Node* x, Node* y) {
         // Put node y in place of x in the tree
-        // x along with its subtree will be orphaned from the tree
-        // Assumes x is not nullptr
         if (x->parent == nullptr) root = y;
         else if (x->parent->left == x) x->parent->left = y;
         else x->parent->right = y;
@@ -110,7 +107,6 @@ public:
     }
 
     void rrotate(Node* x) {
-        // Assumes x->left is not nullptr
         Node* y = x->left;
         Transplant(y, y->right);
         Transplant(x, y);
@@ -121,11 +117,10 @@ public:
     }
 
     void lrotate(Node* x) {
-        // Assumes x->right is not nullptr
         Node* y = x->right;
         Transplant(y, y->left);
-        Transplant(x, y); // Put y in x's place
-        y->left = x; // Make x the left child of y
+        Transplant(x, y); 
+        y->left = x; 
         x->parent = y;
         recalc(x);
         recalc(y);
@@ -138,6 +133,7 @@ public:
         else if (i < r + 1) return select(x->left, i);
         else return select(x->right, i - (r + 1));
     }
+    
     Node* tallchild(Node* x) {
         if (x == nullptr) return nullptr;
         else if (x->left == nullptr) return x->right;
@@ -147,8 +143,6 @@ public:
     }
 
     void recalc(Node* x) {
-        // Recalculate x's height, size, and bf
-        // Assumes its children are correctly recalculated
         if (x == nullptr) return;
         if ((x->left != nullptr) && (x->right != nullptr)) {
             x->height = 1 + max(x->left->height, x->right->height);
@@ -173,91 +167,40 @@ public:
     }
 
     void inorder(Node* p) {
-        // Helpful for debugging
         if (p == nullptr) return;
-        cout << " (";
         inorder(p->left);
-        cout << p->key;
+        // cout << p->key << " "; // Uncomment to print keys
         inorder(p->right);
-        cout << ") ";
     }
 };
 
 int main() {
-
     AVL b;
+    int n = 100000; // Dataset size
+    
+    cout << "Benchmarking AVL Tree with n=" << n << "..." << endl;
 
-    int n = 100000; // Use 100,000 so the benchmark actually registers time
     auto startTime = chrono::high_resolution_clock::now();
+    
     for (int i = 1; i <= n; i++) {
-        // Uncomment one of the below two statements
-        // Node* p = new Node((i * 7637 + 571) % n + 1); // random inserts
-        Node* p = new Node(i); // sequential inserts
+        // Toggle insertion mode:
+        // Node* p = new Node((i * 7637 + 571) % n + 1); // Random inserts
+        Node* p = new Node(i);                           // Sequential inserts
         b.insert(p);
     }
 
     auto endTime = chrono::high_resolution_clock::now();
 
-    cout << "n = " << b.size() << " h = " << b.height();
-    cout << " h/log n = " << b.height() / (log(b.size()) / log(2)) << endl;
-    cout << "Total Time = " << chrono::duration_cast<chrono::microseconds>(endTime - startTime).count() / 1000.0 << " micsec";
-    cout << " Avg time per ins " << chrono::duration_cast<chrono::microseconds>(endTime - startTime).count() / 1000.0 / b.size() << " micsec" << endl;
+    double totalTime = chrono::duration_cast<chrono::microseconds>(endTime - startTime).count() / 1000.0;
 
-    // cout << b.select(b.root, n / 2)->key << endl;
+    cout << "------------------------------------------------" << endl;
+    cout << "Results:" << endl;
+    cout << "Tree Size (n):   " << b.size() << endl;
+    cout << "Tree Height (h): " << b.height() << endl;
+    cout << "Ratio h/log2(n): " << b.height() / (log(b.size()) / log(2)) << endl;
+    cout << "Total Time:      " << totalTime << " ms" << endl;
+    cout << "Avg Time/Insert: " << totalTime / b.size() << " ms" << endl;
+    cout << "------------------------------------------------" << endl;
 
     return 0;
 }
-
-
-/* delete is for your pleasure only - not a part of experiments here
-  move this part of code into AVL class if you want to see the effects */
-
-
-/*
-void deleteNode(Node* x) {
-    // Case 1:  x is a leaf
-    if (x->left == nullptr && x->right == nullptr) {
-        Transplant(x, nullptr);
-        fixup(x->parent);
-    }
-    // Case 2:  x has one child
-    else if (x->left == nullptr) {
-        Transplant(x, x->right);
-        fixup(x->right);
-    }
-    else if (x->right == nullptr) {
-        Transplant(x, x->left);
-        fixup(x->left);
-    }
-    else {  // Case 3: x has two children
-        Node* y = x->right;
-        while (y->left != nullptr) y = y->left; // get successor
-        if (y->parent == x) { // Subcase 3.1
-            Transplant(x, y);
-            y->left = x->left;
-            x->left->parent = y;
-            fixup(y);
-        }
-        else { // Subcase 3.2
-            Transplant(y, y->right);
-            Transplant(x, y);
-            y->right = x->right; y->left = x->left;
-            x->right->parent = x->left->parent = y;
-            recalc(y);
-            fixup(y->right);
-        }
-    }
-}
-
-void deleteKey(int key) {
-    Node* x = search(key);
-    if (x != nullptr) deleteNode(x);
-}
-
-void fixup(Node* x) {
-    // Needed for delete
-    // Walks up the path from the point of deletion x and fixes every node
-    Node* y = x;
-    while (y != nullptr) { fixme(y); y = y->parent; }
-}
-*/

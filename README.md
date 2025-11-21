@@ -53,7 +53,7 @@ The data confirms the theoretical advantage of AVL trees.
 ## 🛠️ Usage
 ### 1. Compile
 ```bash
-g++ -o avl_benchmark src/main.cpp
+g++ -o avl_benchmark main.cpp
 ```
 
 ### 2. Run
@@ -70,4 +70,4 @@ g++ -o avl_benchmark src/main.cpp
 
 ## 📄 Full Report
 
-For a detailed breakdown of the methodology, including the impact of sequential vs. random insertions, please view the Full Experiment Report.
+For a detailed breakdown of the methodology, the source code includes toggleable logic to reproduce the sequential vs. random insertion experiments.
